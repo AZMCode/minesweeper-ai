@@ -833,11 +833,14 @@ pub mod strategy {
             impl std::ops::AddAssign for Relationship {
                 fn add_assign(&mut self, rhs: Self) {
                     self.max_mines += rhs.max_mines;
-                    for cell in rhs.members {
-                        if !self.members.contains(&cell) {
-                            self.members.push(cell);
+                    self.members.extend(rhs.members);
+                    self.members.sort_by(|[lhs_x,lhs_y],[rhs_x,rhs_y]|
+                        match lhs_x.cmp(rhs_x) {
+                            c @ (std::cmp::Ordering::Less | std::cmp::Ordering::Greater) => c,
+                            std::cmp::Ordering::Equal => lhs_y.cmp(rhs_y)
                         }
-                    }
+                    );
+                    self.members.dedup();
                 }
             }
             impl std::ops::Add for Relationship {
@@ -848,7 +851,7 @@ pub mod strategy {
                 }
             }
             let mut relationships = vec![];
-            let mut covered_squares = 0;
+            let mut covered_squares = 0usize;
             let mut uncovered_mines = 0;
             for (id,cell) in board.iter_slice(.., ..) {
                 match cell {
@@ -878,7 +881,7 @@ pub mod strategy {
                     let members_iter = (0..(relationships[lhs_i].members.len()))
                         .flat_map(|lhs_member_i| (0..(relationships[rhs_i].members.len()))
                             .map(move |rhs_member_i| (lhs_member_i,rhs_member_i))
-                        ).filter(|(a,b)| a < b);
+                        ).filter(|(a,b)| a <= b);
                     for (lhs_member_i,rhs_member_i) in members_iter {
                         if relationships[lhs_i].members[lhs_member_i] == relationships[rhs_i].members[rhs_member_i] {
                             let popped_rhs = relationships.remove(rhs_i);
@@ -971,10 +974,10 @@ pub mod strategy {
             let finished_board_states = finished_p_groups.into_iter().map(|p_group| {
                 let merged_p_group = p_group.into_iter().flat_map(|p| p.members).collect::<Vec<_>>();
                 let cells_in_p_group = merged_p_group.len();
-                let covered_cells_outside_p_group = covered_squares - cells_in_p_group;
+                let covered_cells_outside_p_group = covered_squares.saturating_sub(cells_in_p_group);
                 let mines_in_p_group = merged_p_group.iter().filter(|(_,r)| matches!(r.classify(),CellClassification::DefinedLeft)).count();
                 let covered_mines_outside_p_group = covered_mines - mines_in_p_group;
-                let covered_clears_outside_p_group = covered_cells_outside_p_group - covered_mines_outside_p_group;
+                let covered_clears_outside_p_group = covered_cells_outside_p_group.saturating_sub(covered_mines_outside_p_group);
                 let ratio_outside_clear_group = MineToClearRatio(covered_mines_outside_p_group,covered_clears_outside_p_group);
                 board.iter_slice(.., ..).map(|(cell_id,cell)|
                     match cell {

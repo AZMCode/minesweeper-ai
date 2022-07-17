@@ -232,7 +232,7 @@ macro_rules! any_board {
     }
 }
 
-any_board!(BruteForce, Border, Localized);
+any_board!(BruteForce, Border, Random, Localized);
 
 
 

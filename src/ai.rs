@@ -976,7 +976,7 @@ pub mod strategy {
                 let cells_in_p_group = merged_p_group.len();
                 let covered_cells_outside_p_group = covered_squares.saturating_sub(cells_in_p_group);
                 let mines_in_p_group = merged_p_group.iter().filter(|(_,r)| matches!(r.classify(),CellClassification::DefinedLeft)).count();
-                let covered_mines_outside_p_group = covered_mines - mines_in_p_group;
+                let covered_mines_outside_p_group = covered_mines.saturating_sub(mines_in_p_group);
                 let covered_clears_outside_p_group = covered_cells_outside_p_group.saturating_sub(covered_mines_outside_p_group);
                 let ratio_outside_clear_group = MineToClearRatio(covered_mines_outside_p_group,covered_clears_outside_p_group);
                 board.iter_slice(.., ..).map(|(cell_id,cell)|

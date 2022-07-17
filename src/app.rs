@@ -32,7 +32,7 @@ impl App {
             field_size_input: [GAME_PARAMS[0].to_string(),GAME_PARAMS[1].to_string()],
             num_mines: GAME_PARAMS[2],
             num_mines_input: GAME_PARAMS[2].to_string(),
-            board_kind: "Localized".to_string(),
+            board_kind: "BruteForce".to_string(),
             show_ai_moves: false
         })
     }
